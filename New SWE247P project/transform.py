@@ -31,6 +31,11 @@ def main():
     test = read_book(zips[0])
     print(len(test))
     print(test[:300])
+
+    clean = strip_gutenberg(test)
+    print(len(test))
+    print(len(clean))
+    print(clean[:300])
     
     
 def find_zips(root):
@@ -55,6 +60,20 @@ def read_book(zip_path):
                 return raw.decode("ascii", errors="ignore")
     return ""
             
+def strip_gutenberg(text):
+    """ Returns the book without the license header and footer """
+    # Find where to book starts and ends
+    start = text.find("*** START OF")
+    end = text.find("*** END OF")
+
+    # Check
+    if start is -1 or end is -1:
+        return text
+    
+    # Find the end of the start line
+    line_end = text.find("\n", start)
+    return text[line_end + 1: end]
+
 
 
 
