@@ -12,6 +12,12 @@ def main():
     # Find the scripts folders
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
+    # Building path for stopwords
+    stop_path = os.path.join(script_dir, "stopwords.txt")
+
+    # Load the stopwords
+    stopwords = load_stopwords(stop_path)
+
     # Picking the folder
     if len(sys.argv) > 1:
         root = sys.argv[1]
@@ -37,10 +43,14 @@ def main():
     print(len(clean))
     print(clean[:300])
 
-    # Testing tokenize
+    # Testing tokenize / removing stopwords
     tokens = tokenize(clean)
-    print(len(tokens))
-    print(tokens[:30])
+    filtered = remove_stopwords(tokens, stopwords)
+    print(len(filtered))
+    print(filtered[:30])
+
+
+
 
     
 def find_zips(root):
@@ -91,6 +101,20 @@ def tokenize(text):
             tokens.append(word)
     return tokens
 
+def load_stopwords(path):
+    """ Help load any stopwords, by reading and splitting """
+    with open(path) as f:
+        content = f.read()
+        words = content.split()
+        return set(words)
+    
+def remove_stopwords(tokens, stopwords):
+    """ Remove the stop words that have been identified """
+    kept = []
+    for token in tokens:
+        if token not in stopwords:
+            kept.append(token)
+    return kept
 
 
 
