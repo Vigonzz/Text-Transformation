@@ -6,6 +6,7 @@ The transformations should include the following: tokenization, Porter stemming,
 """
 
 import sys, os, zipfile, re
+from nltk.stem import PorterStemmer
 # Main function
 def main():
 
@@ -17,6 +18,12 @@ def main():
 
     # Load the stopwords
     stopwords = load_stopwords(stop_path)
+
+    # Create cache as an empty dict. 
+    stem_cache = {}
+
+    # Create the stemmer (The og alg. give it classic porter results)
+    stemmer = PorterStemmer(mode=PorterStemmer.ORIGINAL_ALGORITHM)
 
     # Picking the folder
     if len(sys.argv) > 1:
@@ -46,8 +53,9 @@ def main():
     # Testing tokenize / removing stopwords
     tokens = tokenize(clean)
     filtered = remove_stopwords(tokens, stopwords)
-    print(len(filtered))
-    print(filtered[:30])
+    stem = stem_tokens(filtered, stemmer, stem_cache)
+    print(len(stem))
+    print(stem[:30])
 
 
 
@@ -115,6 +123,16 @@ def remove_stopwords(tokens, stopwords):
         if token not in stopwords:
             kept.append(token)
     return kept
+
+def stem_tokens(tokens, stemmer, cache):
+    """ Turn tokens into a stem list and use a dictionary so the the stemmer 
+    doesn't have to work our the same word multiple times"""
+    stems = []
+    for token in tokens:
+        if token not in cache:
+            cache[token] = stemmer.stem(token)
+        stems.append(cache[token])
+    return stems 
 
 
 
