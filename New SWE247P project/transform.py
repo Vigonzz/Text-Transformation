@@ -13,6 +13,10 @@ def main():
     # Find the scripts folders
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
+    # Sets the top-level output folder input_transform
+    out_root = os.path.join(script_dir, "input-transform")
+
+
     # Building path for stopwords
     stop_path = os.path.join(script_dir, "stopwords.txt")
 
@@ -40,25 +44,36 @@ def main():
     zips = find_zips(root)
     print(f"Found: {len(zips)}")
 
+    for zip_path in zips:
+        # Read the book
+        text = read_book(zip_path)
+        # Clean the words
+        clean = strip_gutenberg(text)
+        # Error handling
+        if clean == text:
+            print("No Markers" + os.path.basename(zip_path))
+        # Apply clean to tokens
+        tokens = tokenize(clean)
+        # Filter the words
+        filtered = remove_stopwords(tokens, stopwords)
+        # Stem tokens
+        stems = stem_tokens(filtered, stemmer, stem_cache)
+        # Write the output
+        write_output(zip_path, root, out_root, stems)
+        # Progress print
+        print(os.path.basename(zip_path))
 
-    test = read_book(zips[0])
-    print(len(test))
-    print(test[:300])
-
-    clean = strip_gutenberg(test)
-    print(len(test))
-    print(len(clean))
-    print(clean[:300])
+    #clean = strip_gutenberg(test)
+    #print(len(test))
+    #print(len(clean))
+    #print(clean[:300])
 
     # Testing tokenize / removing stopwords
-    tokens = tokenize(clean)
-    filtered = remove_stopwords(tokens, stopwords)
-    stem = stem_tokens(filtered, stemmer, stem_cache)
-    print(len(stem))
-    print(stem[:30])
-
-
-
+    #tokens = tokenize(clean)
+    #filtered = remove_stopwords(tokens, stopwords)
+    #stem = stem_tokens(filtered, stemmer, stem_cache)
+    #print(len(stem))
+    #print(stem[:30])
 
     
 def find_zips(root):
@@ -85,12 +100,20 @@ def read_book(zip_path):
             
 def strip_gutenberg(text):
     """ Returns the book without the license header and footer """
-    # Find where to book starts and ends
-    start = text.find("*** START OF")
-    end = text.find("*** END OF")
+    # Find where to book starts
+    start = text.find("START OF THE PROJECT GUTENBERG")
+    # Check for wording diff
+    if start == -1:
+        start = text.find("START OF THIS PROJECT GUTENBERG")
+    
+    # Find where the book ends
+    end = text.find("END OF THE PROJECT GUTENBERG")
+    # Check for ending word difference
+    if end == -1:
+        end = text.find("END OF THIS PROJECT GUTENBERG")
 
-    # Check
-    if start is -1 or end is -1:
+    # Fallback if neither versions exist 
+    if start == -1 or end == -1:
         return text
     
     # Find the end of the start line
@@ -111,10 +134,12 @@ def tokenize(text):
 
 def load_stopwords(path):
     """ Help load any stopwords, by reading and splitting """
+    # Extra stop words to add on
+    extra = {"will"}
     with open(path) as f:
         content = f.read()
         words = content.split()
-        return set(words)
+        return set(words) | extra
     
 def remove_stopwords(tokens, stopwords):
     """ Remove the stop words that have been identified """
@@ -134,6 +159,22 @@ def stem_tokens(tokens, stemmer, cache):
         stems.append(cache[token])
     return stems 
 
+def write_output(zip_path, root, out_root, stems):
+    # Get te path and swap zip for txt
+    rel_path = os.path.relpath(zip_path, root)
+    rel_txt = os.path.splitext(rel_path)[0] + ".txt"
+
+    # Builds path of output file by putting the mirrored path inside input-transform
+    out_path = os.path.join(out_root, rel_txt)
+    # Strips the filename off, leaves the folder that file lives in
+    out_dir = os.path.dirname(out_path)
+
+    # Creates a folder chain if its missing
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Create a new file
+    with open(out_path, "w") as f:
+        f.write(" ".join(stems))
 
 
 if __name__ == "__main__":
