@@ -1,3 +1,4 @@
+# Test file - Used to tested expected output (verification script essentially)
 from transform import tokenize, remove_stopwords, stem_tokens, load_stopwords, PorterStemmer
 
 expected = "document describ market strategi carri compani agricultur chemic report predict market share chemic report market statist agrochem pesticid herbicid fungicid insecticid fertil predict sale market share stimul demand price cut volum sale"

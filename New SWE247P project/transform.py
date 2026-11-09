@@ -5,6 +5,10 @@ Develop a program that reads text files and produces other text files with trans
 The transformations should include the following: tokenization, Porter stemming, and word-stopping.
 """
 
+# This program uses the assistance of AI for step breakdown, debugging, and Demo presentation prep. 
+# https://claude.ai/share/44be8aaf-7b5a-4fcc-bc1c-8cb0bf7da496
+# ALL CODE WAS CREATED BY ME
+
 import sys, os, zipfile, re
 from nltk.stem import PorterStemmer
 # Main function
