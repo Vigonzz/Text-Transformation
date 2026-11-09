@@ -5,7 +5,7 @@ Develop a program that reads text files and produces other text files with trans
 The transformations should include the following: tokenization, Porter stemming, and word-stopping.
 """
 
-import sys, os, zipfile
+import sys, os, zipfile, re
 # Main function
 def main():
 
@@ -36,7 +36,12 @@ def main():
     print(len(test))
     print(len(clean))
     print(clean[:300])
-    
+
+    # Testing tokenize
+    tokens = tokenize(clean)
+    print(len(tokens))
+    print(tokens[:30])
+
     
 def find_zips(root):
     """ Returns a list of the paths of every .zip file """
@@ -73,6 +78,18 @@ def strip_gutenberg(text):
     # Find the end of the start line
     line_end = text.find("\n", start)
     return text[line_end + 1: end]
+
+def tokenize(text):
+    """ Convert all words to lowercase, identifies what is getting tokenized"""
+    l_text = text.lower()
+    words = re.findall(r"[a-z]+", l_text)
+    # holds words (except for single), our cleaned up list
+    tokens = []
+    for word in words:
+        # Dropping 1 letter tokens
+        if len(word) >= 2:
+            tokens.append(word)
+    return tokens
 
 
 
