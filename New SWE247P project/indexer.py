@@ -4,9 +4,12 @@ from pathlib import Path
 SCRIPT_DIR = (Path(__file__).parent.resolve())
 
 # Join the folders
-INPUT_DIR = SCRIPT_DIR / "input-transform"
+INPUT_DIR = SCRIPT_DIR / "test-input"
 #Make the output setting
 OUTPUT_DIR = SCRIPT_DIR / "inv-index"
+# write the doc id SETTING
+DOC_IDS_FILE = OUTPUT_DIR / "doc-ids.txt"
+
 
 # Placeholder functions
 def find_documents():
@@ -27,9 +30,6 @@ def find_documents():
         real_path = file_path.relative_to(INPUT_DIR)
         docs_ids[num] = real_path
     return docs_ids
-    
-    
-
 
 
 def build_index():
@@ -39,6 +39,13 @@ def write_index():
     """ Sort the terms and write the first-letter shards into inv-index file """
     pass
 
+def write_doc_ids(files):
+    """ Write the doc ids """
+    with open(DOC_IDS_FILE, "w", encoding="utf-8") as doc_ids:
+        for ids, pathing in files.items():
+            doc_ids.write(f"{ids}\t{pathing}\n")
+
+
 # Adding the skeleton
 def main():
     print(INPUT_DIR)
@@ -47,8 +54,9 @@ def main():
     # Create the output folder if it is missing
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    docs_id = find_documents()
-    print(len(docs_id))
+    docs_ids = find_documents()
+    write_doc_ids(docs_ids)
+    print(len(docs_ids))
 
 
 
