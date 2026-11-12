@@ -13,7 +13,8 @@ DOC_IDS_FILE = OUTPUT_DIR / "doc-ids.txt"
 
 # Placeholder functions
 def find_documents():
-    """ Finds all files in the input folder, sots and assigns the doc ids """
+    """ Finds all files in the input folder, sots and assigns the doc ids
+     Reads tokens and fills in the input folder, sorting and assigning the doc ID """
     files = []
     # get every path under the input folder
     for path in INPUT_DIR.rglob("*"):
@@ -32,9 +33,25 @@ def find_documents():
     return docs_ids
 
 
-def build_index():
-    """ Reads tokens and fills in the input folder, sorting and assigning the doc ID """
-    pass
+def build_index(docs_ids):
+    """ Builds the terms to the doc ID and also the position """
+    index = {}
+    # Loop over the docs
+    for doc_id,doc in docs_ids.items():
+        full_path = INPUT_DIR / doc
+        # Read the file
+        content = full_path.read_text(encoding="utf-8")
+        tokens = content.split()
+        # Loop over the token w/ positions
+        for position, term in enumerate(tokens, start=1):
+            if term not in index:
+                index[term] = {}
+            if doc_id not in index[term]:
+                index[term][doc_id] = []
+            index[term][doc_id].append(position)
+    return index
+
+    return index
 def write_index():
     """ Sort the terms and write the first-letter shards into inv-index file """
     pass
@@ -56,7 +73,10 @@ def main():
 
     docs_ids = find_documents()
     write_doc_ids(docs_ids)
-    print(len(docs_ids))
+    index = build_index(docs_ids)
+    print(len(index))
+    print(index["market"])
+    print(index["chemic"])
 
 
 
