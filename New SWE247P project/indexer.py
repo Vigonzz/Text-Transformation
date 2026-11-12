@@ -1,16 +1,29 @@
 # Module 3 - Inverted Index
+
+# Citation: AI chat mode was used to assist in structure, understanding, and calculations
+# All code was produced by me 
+
+'''
+How to run:
+1. Activate the venv: source venv/bin/activate
+2. cd "New SWE247P project"
+3. Empty the inv-index/ folder (removes old shards)
+4. python indexer.py
+
+Test mode: set INPUT_DIR to "test-input" at the top of indexer.py
+'''
+
 from pathlib import Path
 
 SCRIPT_DIR = (Path(__file__).parent.resolve())
 
 # Join the folders
-INPUT_DIR = SCRIPT_DIR / "test-input"
+INPUT_DIR = SCRIPT_DIR / "input-transform"
 #Make the output setting
 OUTPUT_DIR = SCRIPT_DIR / "inv-index"
 # write the doc id SETTING
 DOC_IDS_FILE = OUTPUT_DIR / "doc-ids.txt"
-# Sort and write index setting
-INDEX_FILE = OUTPUT_DIR / "index.txt"
+
 
 
 # Placeholder functions
@@ -59,12 +72,25 @@ def write_index(index):
     # Sort the terms
     sorted_terms = sorted(index)
 
-    # Open the file
-    with open(INDEX_FILE, "w", encoding="utf-8") as write_index:
-        for term in sorted_terms:
-            term_line = format_line(term, index[term])
-            write_index.write(f"{term_line}\n")
+    # Group line by shard
+    shards = {}
+    for term in sorted_terms:
+        file_name = shard_name(term)
+        if file_name not in shards:
+            shards[file_name] = []
+        shards[file_name].append(format_line(term, index[term]))
+    
+    # Writing the shards
+    for f_name,list_line in shards.items():
+        with open(OUTPUT_DIR / f_name, "w", encoding="utf-8") as f:
+            f.write("\n".join(list_line) + "\n")
 
+
+    # Open the file
+    #with open(INDEX_FILE, "w", encoding="utf-8") as write_index:
+        #for term in sorted_terms:
+        #    term_line = format_line(term, index[term])
+        #    write_index.write(f"{term_line}\n")
 
 def write_doc_ids(files):
     """ Write the doc ids """
@@ -89,6 +115,16 @@ def format_line(term, term_info):
 
     return f"{term} {postings_text}"
 
+def shard_name(term):
+    """ Split into first letter shards """
+    # A small helper for the shard name
+    first_char = term[0]
+    if first_char in "a" <= first_char <="z":
+        return f"{first_char}.txt"
+    
+    return f"{first_char}.txt"
+
+
 # Adding the skeleton
 def main():
     print(INPUT_DIR)
@@ -100,8 +136,7 @@ def main():
     docs_ids = find_documents()
     write_doc_ids(docs_ids)
     index = build_index(docs_ids)
-    writing_index = write_index(index)
-    print(writing_index)
+    write_index(index)
     # Test 6
     #print(format_line("market", index["market"]))
     #print(format_line("agricultur", index["agricultur"]))
