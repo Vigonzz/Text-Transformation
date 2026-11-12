@@ -62,6 +62,22 @@ def write_doc_ids(files):
         for ids, pathing in files.items():
             doc_ids.write(f"{ids}\t{pathing}\n")
 
+def format_line(term, term_info):
+    # One piece per doc
+    pieces = []
+    for doc_id, positions in term_info.items():
+        # Get the count
+        count = len(positions)
+        # Convert to strings
+        pos_strings = map(str, positions)
+        # Glueing the commas
+        pos_text = ",".join(pos_strings)
+        # Build the piece
+        pieces.append(f"{doc_id}:{count}:{pos_text}")
+    # Join the pieces
+    postings_text = ";".join(pieces)
+
+    return f"{term} {postings_text}"
 
 # Adding the skeleton
 def main():
@@ -74,6 +90,8 @@ def main():
     docs_ids = find_documents()
     write_doc_ids(docs_ids)
     index = build_index(docs_ids)
+    print(format_line("market", index["market"]))
+    print(format_line("agricultur", index["agricultur"]))
     print(len(index))
     print(index["market"])
     print(index["chemic"])
