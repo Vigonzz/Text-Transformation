@@ -9,6 +9,8 @@ INPUT_DIR = SCRIPT_DIR / "test-input"
 OUTPUT_DIR = SCRIPT_DIR / "inv-index"
 # write the doc id SETTING
 DOC_IDS_FILE = OUTPUT_DIR / "doc-ids.txt"
+# Sort and write index setting
+INDEX_FILE = OUTPUT_DIR / "index.txt"
 
 
 # Placeholder functions
@@ -52,9 +54,17 @@ def build_index(docs_ids):
     return index
 
     return index
-def write_index():
+def write_index(index):
     """ Sort the terms and write the first-letter shards into inv-index file """
-    pass
+    # Sort the terms
+    sorted_terms = sorted(index)
+
+    # Open the file
+    with open(INDEX_FILE, "w", encoding="utf-8") as write_index:
+        for term in sorted_terms:
+            term_line = format_line(term, index[term])
+            write_index.write(f"{term_line}\n")
+
 
 def write_doc_ids(files):
     """ Write the doc ids """
@@ -90,11 +100,15 @@ def main():
     docs_ids = find_documents()
     write_doc_ids(docs_ids)
     index = build_index(docs_ids)
-    print(format_line("market", index["market"]))
-    print(format_line("agricultur", index["agricultur"]))
-    print(len(index))
-    print(index["market"])
-    print(index["chemic"])
+    writing_index = write_index(index)
+    print(writing_index)
+    # Test 6
+    #print(format_line("market", index["market"]))
+    #print(format_line("agricultur", index["agricultur"]))
+    # Test 5
+    #print(len(index))
+    #print(index["market"])
+    #print(index["chemic"])
 
 
 
