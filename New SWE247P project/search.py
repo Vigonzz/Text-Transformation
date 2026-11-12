@@ -20,10 +20,23 @@ def main():
     # Create the stemmer (The og alg. give it classic porter results)
     stemmer = PorterStemmer(mode=PorterStemmer.ORIGINAL_ALGORITHM)
 
-    doc_ids = load_doc_ids(DOC_IDS_FILE)
+
+
+    # Test:
+
+    # Testing process_query
+    lower = process_query("market of prediction",stopwords, stemmer, stem_cache)
+    cap = process_query("Market OF Prediction",stopwords, stemmer, stem_cache)
+    will = process_query("The will of the",stopwords, stemmer, stem_cache)
+    bryon = process_query("byron's wife and children",stopwords, stemmer, stem_cache)
+    print(lower)
+    print(cap)
+    print(will)
+    print(bryon)
+    #doc_ids = load_doc_ids(DOC_IDS_FILE)
     # Test print for load doc func. 
-    print(len(doc_ids))
-    print(doc_ids[1])
+    #print(len(doc_ids))
+    #print(doc_ids[1])
 
 def load_doc_ids(path):
     # Hold the loaded ids
@@ -38,6 +51,18 @@ def load_doc_ids(path):
             doc_ids[int(doc_id)] = display_path
 
     return doc_ids
+
+def process_query(query, stopwords, stemmer, stem_cache):
+    """ Process the query to match the corpus """
+    # Apply the string to tokens
+    tokens = tokenize(query)
+    # Filter the words
+    filtered = remove_stopwords(tokens, stopwords)
+    # Stem each token
+    stems = stem_tokens(filtered, stemmer, stem_cache)
+    return stems
+
+
 
 if __name__ == "__main__":
     main()
