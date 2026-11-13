@@ -24,15 +24,22 @@ def main():
 
     # Test:
 
+    
+    # Testing load_shard:
+    #shard_test = load_shard(INDEX_DIR / "m.txt")
+    #print(len(shard_test))
+    #print(shard_test["market"][:100])
+
     # Testing process_query
-    lower = process_query("market of prediction",stopwords, stemmer, stem_cache)
-    cap = process_query("Market OF Prediction",stopwords, stemmer, stem_cache)
-    will = process_query("The will of the",stopwords, stemmer, stem_cache)
-    bryon = process_query("byron's wife and children",stopwords, stemmer, stem_cache)
-    print(lower)
-    print(cap)
-    print(will)
-    print(bryon)
+    #lower = process_query("market of prediction",stopwords, stemmer, stem_cache)
+    #cap = process_query("Market OF Prediction",stopwords, stemmer, stem_cache)
+    #will = process_query("The will of the",stopwords, stemmer, stem_cache)
+    #bryon = process_query("byron's wife and children",stopwords, stemmer, stem_cache)
+    #print(lower)
+    #print(cap)
+    #print(will)
+    #print(bryon)
+
     #doc_ids = load_doc_ids(DOC_IDS_FILE)
     # Test print for load doc func. 
     #print(len(doc_ids))
@@ -62,7 +69,28 @@ def process_query(query, stopwords, stemmer, stem_cache):
     stems = stem_tokens(filtered, stemmer, stem_cache)
     return stems
 
+def shard_name(term):
+    """ Split into first letter shards """
+    # A small helper for the shard name
+    first_char = term[0]
+    if "a" <= first_char <="z":
+        return f"{first_char}.txt"
+    
+    return "other.txt"
 
+def load_shard(path):
+    # Check for a missing file
+    if not path.exists():
+        return {}
+    shard = {}
+
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            term, posting = line.strip().split(" ", maxsplit=1)
+            # Store shard
+            shard[term] = posting
+    return shard
+    
 
 if __name__ == "__main__":
     main()

@@ -119,7 +119,7 @@ def shard_name(term):
     """ Split into first letter shards """
     # A small helper for the shard name
     first_char = term[0]
-    if first_char in "a" <= first_char <="z":
+    if "a" <= first_char <="z":
         return f"{first_char}.txt"
     
     return f"{first_char}.txt"
