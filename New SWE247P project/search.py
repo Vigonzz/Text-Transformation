@@ -4,7 +4,7 @@ from transform import tokenize, load_stopwords, remove_stopwords, stem_tokens
 from nltk import PorterStemmer
 from pathlib import Path
 
-import time
+import time, sys
 
 # Settings
 SCRIPT_DIR = (Path(__file__).parent.resolve())
@@ -13,6 +13,20 @@ DOC_IDS_FILE = INDEX_DIR / "doc-ids.txt"
 STOPWORDS_FILE = SCRIPT_DIR / "stopwords.txt"
 
 def main():
+    # Command line argument
+    if len(sys.argv) > 1:
+        index_dir = SCRIPT_DIR / sys.argv[1]
+    else:
+        index_dir = INDEX_DIR
+    
+    if not index_dir.is_dir():
+        print(f"Folder not found {index_dir}")
+        sys.exit(1)
+
+    # Path to the indexs doc id
+    doc_ids_file = index_dir / "doc-ids.txt"
+
+
     # Load the stopwords
     stopwords = load_stopwords(STOPWORDS_FILE)
 
@@ -22,10 +36,10 @@ def main():
     # Create cache as an empty dict. 
     stem_cache = {}
     shard_cache = {}
-    doc_ids = load_doc_ids(DOC_IDS_FILE)
+    doc_ids = load_doc_ids(doc_ids_file)
 
     # Startup Message:
-    print(f"Welcome...{len(doc_ids)} were loaded. To exit the program type 'exit'")
+    print(f"Welcome...{len(doc_ids)} documents have loaded. To exit the program type 'exit'")
 
     while True:
         try:
@@ -51,7 +65,7 @@ def main():
             print("Not a searchable term! ^_^ Try another word?")
             continue
 
-        scores = score_query(terms, shard_cache, INDEX_DIR)
+        scores = score_query(terms, shard_cache, index_dir)
         print_top10(scores, doc_ids)
         # Calc current time
         print(f"Search your term took: {time.perf_counter() - start:.3f}s")
@@ -132,15 +146,15 @@ def parser_postings(posting):
 
     # Take the doc chunks
     for entry in pieces:
-       doc_id, _ , positions_str = entry.split(":")
-       pos_strings = positions_str.split(",")
-       # Convert to an int
-       positions = []
-       # Take one position string at a time
-       for p in pos_strings:
+        doc_id, _ , positions_str = entry.split(":")
+        pos_strings = positions_str.split(",")
+        # Convert to an int
+        positions = []
+        # Take one position string at a time
+        for p in pos_strings:
            # convert to a num and add to the list
            positions.append(int(p))
-           postings[int(doc_id)] = positions
+        postings[int(doc_id)] = positions
     return postings
 
 def score_query(terms, shard_cache, index_dir):
@@ -197,7 +211,7 @@ def print_top10(scores, doc_ids):
     """ Ranked path (top ten) get printed for having the highest score
     the ties fo into the lower doc id """
     # Sort 
-    sorted_id = sorted(scores.items(), key=lambda x: -x[1])
+    sorted_id = sorted(scores.items(), key=lambda x: (-x[1], x[0]))
 
     # Take the top 10
     top10 = sorted_id[:10]
@@ -210,7 +224,7 @@ def print_top10(scores, doc_ids):
     for i, (doc, score) in enumerate(top10, start=1):
         path = doc_ids[doc]
         # Alignment
-        print(f"{i:2}. {path}  ")
+        print(f"{i:2}. {path} ")
 
 
 

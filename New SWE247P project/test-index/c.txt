@@ -1,0 +1,4 @@
+carri 1:1:5
+chemic 1:2:8,13
+compani 1:1:6
+cut 1:1:30;2:1:8

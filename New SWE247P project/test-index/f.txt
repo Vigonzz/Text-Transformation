@@ -1,0 +1,2 @@
+fertil 1:1:22
+fungicid 1:1:20

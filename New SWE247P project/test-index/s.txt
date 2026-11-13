@@ -1,0 +1,5 @@
+sale 1:2:24,32;2:1:3
+share 1:2:12,26;2:1:5
+statist 1:1:16
+stimul 1:1:27
+strategi 1:1:4
