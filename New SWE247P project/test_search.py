@@ -30,3 +30,20 @@
     #print(market_parsed[1])
     #print(len(market_parsed[4]))
     #print(parser_postings(None))
+
+    # Score_query
+    #print(len(test))
+    #print(len(test[0]))
+    #print(len(test[1]))
+
+# MORE FOR SCORE_QUERY:
+    #terms = process_query("market of prediction", stopwords, stemmer, stem_cache)
+   # scores = score_query(terms, shard_cache, INDEX_DIR)
+  #  print(len(scores))
+ #   print(scores[1])
+#    print(score_query([],shard_cache, INDEX_DIR))
+
+    #test=score_query(['market', 'predict'], shard_cache, INDEX_DIR)
+    #print(len(test))
+    #print(len(test[0]))
+    #print(len(test[1]))

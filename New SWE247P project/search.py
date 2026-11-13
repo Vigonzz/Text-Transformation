@@ -23,7 +23,7 @@ def main():
     shard_cache = {}
 
     # Test:
-
+ 
 def load_doc_ids(path):
     # Hold the loaded ids
     doc_ids = {}
@@ -86,6 +86,8 @@ def get_postings(term, cache_dict, index_dir):
     return lookup 
 
 def parser_postings(posting):
+    """ Translate the index text format into a dict so python can compute. Re
+     turns an empty dict for missing terms """
     # Handle for a missing term
     if posting is None:
         return {}
@@ -106,6 +108,20 @@ def parser_postings(posting):
            positions.append(int(p))
            postings[int(doc_id)] = positions
     return postings
+
+def score_query(terms, shard_cache, index_dir):
+    """ Takes the processed query terms from Score_counts and Score_positions
+    and return the docs relevancy in the form of a dict of doc and score """
+    term_postings = []
+    for term in terms:
+        term_postings.append(parser_postings(get_postings(term, shard_cache, index_dir)))
+    
+    # Create the accumulator 
+    scores = {}
+    for t in term_postings:
+        for doc, positions in t.items():
+            scores[doc] = scores.get(doc, 0) + len(positions)
+    return scores
 
 
 if __name__ == "__main__":
