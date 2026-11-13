@@ -14,43 +14,15 @@ def main():
     # Load the stopwords
     stopwords = load_stopwords(STOPWORDS_FILE)
 
-    # Create cache as an empty dict. 
-    stem_cache = {}
-
     # Create the stemmer (The og alg. give it classic porter results)
     stemmer = PorterStemmer(mode=PorterStemmer.ORIGINAL_ALGORITHM)
 
-
+    # Create cache as an empty dict. 
+    stem_cache = {}
+    shard_test = load_shard(INDEX_DIR / "m.txt")
+    shard_cache = {}
 
     # Test:
-    # Testing get_postings
-    shard_cache = {}
-    print(get_postings("market", shard_cache, INDEX_DIR)[:50])
-    print(get_postings("market", shard_cache, INDEX_DIR)[:50])
-    print(get_postings("predict", shard_cache, INDEX_DIR)[:50])
-    print(get_postings("zzzqqq", shard_cache, INDEX_DIR))
-    print(shard_cache.keys())
-
-
-    # Testing load_shard:
-    #shard_test = load_shard(INDEX_DIR / "m.txt")
-    #print(len(shard_test))
-    #print(shard_test["market"][:100])
-
-    # Testing process_query
-    #lower = process_query("market of prediction",stopwords, stemmer, stem_cache)
-    #cap = process_query("Market OF Prediction",stopwords, stemmer, stem_cache)
-    #will = process_query("The will of the",stopwords, stemmer, stem_cache)
-    #bryon = process_query("byron's wife and children",stopwords, stemmer, stem_cache)
-    #print(lower)
-    #print(cap)
-    #print(will)
-    #print(bryon)
-
-    #doc_ids = load_doc_ids(DOC_IDS_FILE)
-    # Test print for load doc func. 
-    #print(len(doc_ids))
-    #print(doc_ids[1])
 
 def load_doc_ids(path):
     # Hold the loaded ids
@@ -112,6 +84,28 @@ def get_postings(term, cache_dict, index_dir):
         cache_dict[name] = load_shard(path)
     lookup = cache_dict[name].get(term)
     return lookup 
+
+def parser_postings(posting):
+    # Handle for a missing term
+    if posting is None:
+        return {}
+    # Gets filled with one doc per loop and chop the 
+    # string into a chunk
+    postings = {}
+    pieces = posting.split(";")
+
+    # Take the doc chunks
+    for entry in pieces:
+       doc_id, _ , positions_str = entry.split(":")
+       pos_strings = positions_str.split(",")
+       # Convert to an int
+       positions = []
+       # Take one position string at a time
+       for p in pos_strings:
+           # convert to a num and add to the list
+           positions.append(int(p))
+           postings[int(doc_id)] = positions
+    return postings
 
 
 if __name__ == "__main__":
