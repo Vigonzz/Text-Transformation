@@ -1,5 +1,7 @@
-# Module 5
+# Module 5: Revise the scoring formula (primarily the scoring part).
 
+# Citation for AI use: https://claude.ai/share/7590ee72-edb5-4773-956d-600ded6ab2a3
+# All code was prduced by me; however, debugging, strucutre, step guide were contributed by Claude Chat
 from transform import tokenize, load_stopwords, remove_stopwords, stem_tokens
 
 from nltk import PorterStemmer
@@ -38,12 +40,10 @@ def main():
     shard_cache = {}
     doc_ids = load_doc_ids(doc_ids_file)
 
-    # test
+    # Stopwatch to calc doc load time
     t0 = time.perf_counter()
     doc_norms = compute_doc_norms(index_dir, len(doc_ids))
-    print(f"{time.perf_counter() - t0:.2f}")
-    print(len(doc_norms))
-
+    print(f"Computed the doc lengths in {time.perf_counter() - t0:.2f}s")
 
     # Startup Message:
     print(f"Welcome...{len(doc_ids)} documents have loaded. To exit the program type 'exit'")
@@ -195,8 +195,9 @@ def parser_postings(posting):
     return postings
 
 def score_query(terms, shard_cache, index_dir, doc_norms, n_docs):
-    """ Takes the processed query terms from Score_counts and Score_positions
-    and return the docs relevancy in the form of a dict of doc and score """
+    """ Score docs for the query. Cosine  with tf-idf weights from the book: Search Engines: information retrieval
+     by Croft, Metzler, Strohman (pg. 240-242)
+     so cosine + position score / (terms - 1) and returns a dict of the doc id and score """
     term_postings = []
     for term in terms:
         term_postings.append(parser_postings(get_postings(term, shard_cache, index_dir)))
@@ -252,7 +253,7 @@ def score_query(terms, shard_cache, index_dir, doc_norms, n_docs):
             # Add the position score
             dist = shortest(a[doc], b[doc])
             # Make the position bonus line safe
-            scores[doc] = scores.get(doc,0) + 1 / dist
+            scores[doc] = scores.get(doc,0) + ((1 / dist) / (len(terms) -1))
     return scores
 
 def shortest(pos_a, pos_b):
@@ -293,7 +294,7 @@ def print_top10(scores, doc_ids):
     for i, (doc, score) in enumerate(top10, start=1):
         path = doc_ids[doc]
         # Alignment
-        print(f"{i:2}. {path} {score} ")
+        print(f"{i:2}. {path} ")
 
 
 

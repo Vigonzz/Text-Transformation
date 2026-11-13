@@ -1,4 +1,7 @@
 # Module 4: develop a search interface for searching occurrences of words in the corpus
+
+# Citation for AI use: https://claude.ai/share/7590ee72-edb5-4773-956d-600ded6ab2a3
+# All code was prduced by me; however, debugging, strucutre, step guide were contributed by Claude Chat
 from transform import tokenize, load_stopwords, remove_stopwords, stem_tokens
 
 from nltk import PorterStemmer
