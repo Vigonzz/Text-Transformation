@@ -4,7 +4,7 @@ from transform import tokenize, load_stopwords, remove_stopwords, stem_tokens
 
 from nltk import PorterStemmer
 from pathlib import Path
-
+from collections import Counter
 import time, sys, math
 
 # Settings
@@ -72,7 +72,7 @@ def main():
             print("Not a searchable term! ^_^ Try another word?")
             continue
 
-        scores = score_query(terms, shard_cache, index_dir)
+        scores = score_query(terms, shard_cache, index_dir, doc_norms, len(doc_ids))
         print_top10(scores, doc_ids)
         # Calc current time
         print(f"Search your term took: {time.perf_counter() - start:.3f}s")
@@ -194,19 +194,50 @@ def parser_postings(posting):
         postings[int(doc_id)] = positions
     return postings
 
-def score_query(terms, shard_cache, index_dir):
+def score_query(terms, shard_cache, index_dir, doc_norms, n_docs):
     """ Takes the processed query terms from Score_counts and Score_positions
     and return the docs relevancy in the form of a dict of doc and score """
     term_postings = []
     for term in terms:
         term_postings.append(parser_postings(get_postings(term, shard_cache, index_dir)))
     
-    # Create the accumulator 
+    # Count each term in the query
+    query_counts = Counter(terms)
+    # Lookup the posting by term
+    parsed = dict(zip(terms, term_postings))
+
+    dot = {}
+    q_norm_sq = 0
+
+    for term, qf in query_counts.items():
+        postings = parsed[term]
+        # When the word is missing there is nothing to score
+        # for n_k
+        n_k = len(postings) 
+        if n_k == 0:
+            continue
+        # For idf
+        idf = math.log(n_docs / n_k)
+        if idf == 0:
+            continue
+        # Get the query weight
+        q_w = (math.log(qf) + 1) * idf 
+        # Add on to the query length
+        q_norm_sq += q_w ** 2
+        
+        for doc, positions in postings.items():
+            d_w = (math.log(len(positions)) + 1) * idf
+            dot[doc] = dot.get(doc, 0) + d_w * q_w
+            
+    q_norm = math.sqrt(q_norm_sq)
     scores = {}
-    for t in term_postings:
-        for doc, positions in t.items():
-            scores[doc] = scores.get(doc, 0) + len(positions)
-    
+
+    for doc, d in dot.items():
+        norm = doc_norms.get(doc)
+        if not norm or not q_norm:
+            continue
+        scores[doc] = d / (norm * q_norm)
+               
     # Loop over pair numbers
     for k in range(len(terms) - 1):
         if terms[k] == terms[k + 1]:
@@ -220,7 +251,8 @@ def score_query(terms, shard_cache, index_dir):
                 continue
             # Add the position score
             dist = shortest(a[doc], b[doc])
-            scores[doc] += 1 / dist
+            # Make the position bonus line safe
+            scores[doc] = scores.get(doc,0) + 1 / dist
     return scores
 
 def shortest(pos_a, pos_b):
@@ -261,7 +293,7 @@ def print_top10(scores, doc_ids):
     for i, (doc, score) in enumerate(top10, start=1):
         path = doc_ids[doc]
         # Alignment
-        print(f"{i:2}. {path} ")
+        print(f"{i:2}. {path} {score} ")
 
 
 
