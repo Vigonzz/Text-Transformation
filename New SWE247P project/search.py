@@ -23,8 +23,15 @@ def main():
 
 
     # Test:
+    # Testing get_postings
+    shard_cache = {}
+    print(get_postings("market", shard_cache, INDEX_DIR)[:50])
+    print(get_postings("market", shard_cache, INDEX_DIR)[:50])
+    print(get_postings("predict", shard_cache, INDEX_DIR)[:50])
+    print(get_postings("zzzqqq", shard_cache, INDEX_DIR))
+    print(shard_cache.keys())
 
-    
+
     # Testing load_shard:
     #shard_test = load_shard(INDEX_DIR / "m.txt")
     #print(len(shard_test))
@@ -79,6 +86,8 @@ def shard_name(term):
     return "other.txt"
 
 def load_shard(path):
+    " Loading a shard into a dict to instantly jump to the key as opposed"
+    "to scanning each line "
     # Check for a missing file
     if not path.exists():
         return {}
@@ -91,6 +100,19 @@ def load_shard(path):
             shard[term] = posting
     return shard
     
+def get_postings(term, cache_dict, index_dir):
+    """ Gets called by the scoring code with a term to handle finding 
+     load and remember the shard """
+    name = shard_name(term)
+    
+    if name not in cache_dict:
+        # Build the path
+        path = index_dir / name 
+        # Opens the outer dict and then the inner
+        cache_dict[name] = load_shard(path)
+    lookup = cache_dict[name].get(term)
+    return lookup 
+
 
 if __name__ == "__main__":
     main()
