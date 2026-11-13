@@ -23,6 +23,8 @@ def main():
     shard_cache = {}
 
     # Test:
+    
+
  
 def load_doc_ids(path):
     # Hold the loaded ids
@@ -121,7 +123,43 @@ def score_query(terms, shard_cache, index_dir):
     for t in term_postings:
         for doc, positions in t.items():
             scores[doc] = scores.get(doc, 0) + len(positions)
+    
+    # Loop over pair numbers
+    for k in range(len(terms) - 1):
+        if terms[k] == terms[k + 1]:
+            continue
+
+        # Parsed dicts:
+        a = term_postings[k]
+        b = term_postings[k + 1]
+        for doc in a:
+            if doc not in b:
+                continue
+            # Add the position score
+            dist = shortest(a[doc], b[doc])
+            scores[doc] += 1 / dist
     return scores
+
+def shortest(pos_a, pos_b):
+    """ A two pointer walk over the two sorted position lists.
+     Return the smallest gap between the two """
+    
+    i = 0
+    j = 0
+    best = float("inf")
+
+    while i < len(pos_a) and j < len(pos_b):
+        # Get the gap distance 
+        gap = abs(pos_a[i] - pos_b[j])
+        # Measure the gap 
+        if gap < best:
+            best = gap
+        # Steer the pointer for the comparison
+        if pos_a[i] < pos_b[j]:
+            i += 1
+        else:
+            j += 1
+    return best
 
 
 if __name__ == "__main__":
