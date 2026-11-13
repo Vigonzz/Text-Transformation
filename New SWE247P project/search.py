@@ -4,6 +4,8 @@ from transform import tokenize, load_stopwords, remove_stopwords, stem_tokens
 from nltk import PorterStemmer
 from pathlib import Path
 
+import time
+
 # Settings
 SCRIPT_DIR = (Path(__file__).parent.resolve())
 INDEX_DIR = SCRIPT_DIR / "inv-index"
@@ -19,12 +21,42 @@ def main():
 
     # Create cache as an empty dict. 
     stem_cache = {}
-    shard_test = load_shard(INDEX_DIR / "m.txt")
     shard_cache = {}
+    doc_ids = load_doc_ids(DOC_IDS_FILE)
 
-    # Test:
+    # Startup Message:
+    print(f"Welcome...{len(doc_ids)} were loaded. To exit the program type 'exit'")
+
+    while True:
+        try:
+           user = input("Q> ").strip().lower()
+        except (KeyboardInterrupt, EOFError):
+            print("Closing program...Goodbye")
+            break
+
+        # Account for user exiting out of program 
+        if user in ["quit", "exit"]:
+            print("Closing program...Goodbye")
+            break
+
+        # Blank line argument
+        if not user:
+            continue
+
+        # Process the query
+        # Setting the timer
+        start = time.perf_counter()
+        terms = process_query(user, stopwords, stemmer, stem_cache)
+        if not terms:
+            print("Not a searchable term! ^_^ Try another word?")
+            continue
+
+        scores = score_query(terms, shard_cache, INDEX_DIR)
+        print_top10(scores, doc_ids)
+        # Calc current time
+        print(f"Search your term took: {time.perf_counter() - start:.3f}s")
+        print()
     
-
  
 def load_doc_ids(path):
     # Hold the loaded ids
@@ -160,6 +192,26 @@ def shortest(pos_a, pos_b):
         else:
             j += 1
     return best
+
+def print_top10(scores, doc_ids):
+    """ Ranked path (top ten) get printed for having the highest score
+    the ties fo into the lower doc id """
+    # Sort 
+    sorted_id = sorted(scores.items(), key=lambda x: -x[1])
+
+    # Take the top 10
+    top10 = sorted_id[:10]
+    if not scores:
+        print("No results")
+        return top10
+    # Header for results
+    print("Top 10 results:")
+
+    for i, (doc, score) in enumerate(top10, start=1):
+        path = doc_ids[doc]
+        # Alignment
+        print(f"{i:2}. {path}  ")
+
 
 
 if __name__ == "__main__":

@@ -63,3 +63,10 @@
 #    print(list(scores.items())[:10])
 #    print(score_query(['market'], shard_cache, INDEX_DIR)[1])
 #    print(score_query(['market', 'market'], shard_cache, INDEX_DIR)[1])
+
+    # Test:
+#    terms = process_query("market of prediction", stopwords, stemmer, stem_cache)
+#    scores = score_query(terms, shard_cache, INDEX_DIR)
+#
+#    print(terms)
+#   print(terms)
